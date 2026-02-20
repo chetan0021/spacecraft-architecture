@@ -384,24 +384,24 @@ graph TD
 ```mermaid
 graph TD
     %% Ground Station
-    GROUND["🌍 GROUND STATION<br/>━━━━━━━━━━━━━━━<br/>3m S-Band Dish<br/>30 dBi Gain<br/>40 min/day Contact"]
+    GROUND["🌍 GROUND STATION<br/>3m S-Band Dish<br/>30 dBi Gain<br/>40 min per day Contact"]
     
-    GROUND ==>|Uplink<br/>4 kbps<br/>QPSK| RX_ANTENNA
-    TX_ANTENNA ==>|Downlink<br/>2 Mbps<br/>QPSK| GROUND
+    GROUND ==>|Uplink 4 kbps QPSK| RX_ANTENNA
+    TX_ANTENNA ==>|Downlink 2 Mbps QPSK| GROUND
     
     %% Spacecraft RF Interface
-    RX_ANTENNA["📡 S-BAND RX ANTENNA<br/>━━━━━━━━━━━━━━━━━<br/>6 dBi Patch Array<br/>2.2-2.3 GHz"]
-    TX_ANTENNA["📡 S-BAND TX ANTENNA<br/>━━━━━━━━━━━━━━━━━<br/>6 dBi Patch Array<br/>10W SSPA"]
+    RX_ANTENNA["📡 S-BAND RX ANTENNA<br/>6 dBi Patch Array<br/>2.2-2.3 GHz"]
+    TX_ANTENNA["📡 S-BAND TX ANTENNA<br/>6 dBi Patch Array<br/>10W SSPA"]
     
     RX_ANTENNA ==>|RF Signal| SBAND_RX
     SBAND_TX ==>|RF Signal| TX_ANTENNA
     
     %% Telecommand Processing Chain
-    SBAND_RX["📻 S-BAND RECEIVER<br/>━━━━━━━━━━━━━━━<br/>Demodulation<br/>Bit Synchronization<br/>Frame Detection"]
+    SBAND_RX["📻 S-BAND RECEIVER<br/>Demodulation<br/>Bit Sync<br/>Frame Detection"]
     
     SBAND_RX ==>|Raw Bits| TC_DECODER
     
-    TC_DECODER["🔓 TC DECODER<br/>━━━━━━━━━━━━━━━<br/>Reed-Solomon FEC<br/>Error Correction<br/>Frame Validation"]
+    TC_DECODER["🔓 TC DECODER<br/>Reed-Solomon FEC<br/>Error Correction<br/>Frame Validation"]
     
     TC_DECODER ==>|Decoded Frames| TC_BUFFER
     
