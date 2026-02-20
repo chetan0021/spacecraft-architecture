@@ -888,7 +888,7 @@ $$J \dot{\omega} = \tau_{control} + \tau_{disturbance} - \omega \times (J\omega)
 
 Where:
 - $J$ = Inertia matrix (kg·m²)
-- $\omega$ = Angular velocity (rad/s)
+- $\Omega$ = Angular velocity (rad/s)
 - $\tau$ = Torque (N·m)
 
 ### Extended Kalman Filter (EKF)
@@ -1407,4 +1407,6 @@ This documentation is provided for educational and portfolio purposes. All techn
 ---
 
 **⭐ If you found this architecture documentation useful, please consider starring this repository!**
+
+
 
