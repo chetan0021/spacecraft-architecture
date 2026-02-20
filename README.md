@@ -893,7 +893,11 @@ Where:
 
 ### Extended Kalman Filter (EKF)
 
-**State Vector:** $x = [q_0, q_1, q_2, q_3, b_x, b_y, b_z]^T$ (7 states)
+**State Vector:**
+
+$$x = [q_0, q_1, q_2, q_3, b_x, b_y, b_z]^T$$
+
+(7 states: quaternion + gyro bias)
 
 **Prediction Step:**
 $$\hat{x}_{k|k-1} = f(\hat{x}_{k-1|k-1}, u_k)$$
@@ -1407,6 +1411,7 @@ This documentation is provided for educational and portfolio purposes. All techn
 ---
 
 **⭐ If you found this architecture documentation useful, please consider starring this repository!**
+
 
 
 
