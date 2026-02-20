@@ -50,188 +50,356 @@ The avionics system employs a **hybrid centralized-distributed architecture** wi
 
 ---
 
-## 📊 Complete Avionics Block Diagram
+## �️ Spacecraft Physical Architecture
 
 ```mermaid
-flowchart TB
-    subgraph POWER["⚡ POWER SUBSYSTEM"]
-        SOLAR[Solar Array<br/>180W BOL]
-        BATTERY[Li-Ion Battery<br/>100 Wh]
-        PCDU[Power Control &<br/>Distribution Unit]
-        DC28[28V Primary Bus]
-        DC12[12V Rail]
-        DC5[5V Rail]
-        DC3[3.3V Rail]
+graph TB
+    subgraph SPACECRAFT["🛰️ 250 KG LEO EARTH OBSERVATION SATELLITE"]
+        subgraph STRUCTURE["SPACECRAFT BUS STRUCTURE"]
+            
+            subgraph TOP["▲ +Z FACE - NADIR POINTING"]
+                PAYLOAD_CAM["📷 MULTISPECTRAL CAMERA<br/>10m GSD<br/>Payload Bay"]
+            end
+            
+            subgraph CENTER["■ CENTRAL AVIONICS BAY"]
+                OBC_PRIMARY["💻 OBC-A PRIMARY<br/>RAD750/LEON3FT<br/>2GB RAM + 64GB Flash<br/>12W @ 5V"]
+                OBC_BACKUP["💻 OBC-B BACKUP<br/>Cold Redundant<br/>Crosslink to OBC-A"]
+                PCDU_MAIN["⚡ PCDU<br/>Power Distribution<br/>28V → 12V/5V/3.3V"]
+                MEMORY["💾 MASS MEMORY<br/>64 GB Solid State<br/>SpaceWire Interface"]
+            end
+            
+            subgraph SIDES["◆ SIDE PANELS +X/-X/+Y/-Y"]
+                SOLAR_PANELS["☀️ SOLAR ARRAYS<br/>3x Deployable Panels<br/>180W BOL<br/>Triple-Junction GaAs"]
+                RADIATORS["❄️ THERMAL RADIATORS<br/>0.6 m² Total Area<br/>ε = 0.85"]
+                ANTENNAS["📡 S-BAND ANTENNAS<br/>Patch Arrays<br/>6 dBi Gain"]
+            end
+            
+            subgraph BOTTOM["▼ -Z FACE - ZENITH"]
+                STAR_TRACK["⭐ STAR TRACKERS x2<br/>0.1° Accuracy<br/>4 Hz Update<br/>Hot Redundant"]
+                SUN_SENS["☀️ SUN SENSORS x5<br/>4π Coverage<br/>0.5° Accuracy"]
+            end
+            
+            subgraph INTERNAL["⚙️ INTERNAL COMPONENTS"]
+                BATTERY["🔋 Li-Ion BATTERY<br/>100 Wh Capacity<br/>28V Nominal"]
+                IMU_UNIT["🎯 IMU<br/>100 Hz Sampling<br/>0.05°/hr Bias"]
+                GPS_UNITS["🌐 GPS RECEIVERS x2<br/>10m Accuracy<br/>Hot Redundant"]
+                MAG_UNITS["🧭 MAGNETOMETERS x2<br/>5 nT Accuracy<br/>Hot Redundant"]
+                RW_UNITS["⚙️ REACTION WHEELS x4<br/>Pyramid Configuration<br/>0.5 Nm Torque"]
+                MTQ_UNITS["🔄 MAGNETORQUERS x3<br/>5 A·m² Dipole<br/>LEO Desaturation"]
+                SBAND_TX["📡 S-BAND XCVR x2<br/>2 Mbps Downlink<br/>Warm Redundant"]
+                HEATERS["🔥 HEATERS x8 Zones<br/>50W Total<br/>Thermostatic Control"]
+                TEMP_SENS["🌡️ TEMP SENSORS x20<br/>Pt1000 RTD<br/>±0.5°C Accuracy"]
+            end
+        end
     end
     
-    subgraph CDH["💻 COMMAND & DATA HANDLING"]
-        OBC_A[OBC-A Primary<br/>RAD750 / LEON3FT<br/>2GB RAM + 64GB Flash]
-        OBC_B[OBC-B Redundant<br/>Cold Standby]
-        CLOCK[Spacecraft Clock<br/>GPS Synchronized]
-        MEMORY[Mass Memory<br/>64 GB Solid State]
-    end
+    %% Physical mounting relationships
+    PAYLOAD_CAM -.Mounted On.-> TOP
+    STAR_TRACK -.Mounted On.-> BOTTOM
+    SUN_SENS -.Mounted On.-> BOTTOM
+    SOLAR_PANELS -.Deployed From.-> SIDES
+    RADIATORS -.Mounted On.-> SIDES
+    ANTENNAS -.Mounted On.-> SIDES
     
-    subgraph ADCS["🎯 ATTITUDE DETERMINATION & CONTROL"]
-        STAR1[Star Tracker 1<br/>0.1° accuracy]
-        STAR2[Star Tracker 2<br/>Redundant]
-        IMU[IMU<br/>100 Hz, 0.05°/hr]
-        MAG1[Magnetometer 1]
-        MAG2[Magnetometer 2]
-        SUN[Sun Sensors x5<br/>4π coverage]
-        GPS1[GPS Receiver 1]
-        GPS2[GPS Receiver 2]
-        RW[Reaction Wheels x4<br/>Pyramid Config]
-        MTQ[Magnetorquers x3]
-    end
+    OBC_PRIMARY -.Located In.-> CENTER
+    OBC_BACKUP -.Located In.-> CENTER
+    PCDU_MAIN -.Located In.-> CENTER
+    MEMORY -.Located In.-> CENTER
     
-    subgraph COMM["📡 COMMUNICATION"]
-        SBAND_A[S-Band Transceiver A<br/>2 Mbps Downlink]
-        SBAND_B[S-Band Transceiver B<br/>Redundant]
-        UHF[UHF Beacon<br/>Emergency]
-    end
+    BATTERY -.Located In.-> INTERNAL
+    IMU_UNIT -.Located In.-> INTERNAL
+    GPS_UNITS -.Located In.-> INTERNAL
+    MAG_UNITS -.Located In.-> INTERNAL
+    RW_UNITS -.Located In.-> INTERNAL
+    MTQ_UNITS -.Located In.-> INTERNAL
+    SBAND_TX -.Located In.-> INTERNAL
+    HEATERS -.Distributed In.-> INTERNAL
+    TEMP_SENS -.Distributed In.-> INTERNAL
     
-    subgraph PAYLOAD["📷 PAYLOAD"]
-        CAMERA[Multispectral Imager<br/>10m GSD]
-        PAYLOAD_PROC[Payload Processor<br/>Image Compression]
-    end
+    style SPACECRAFT fill:#1a1a2e,stroke:#16213e,stroke-width:4px,color:#fff
+    style STRUCTURE fill:#0f3460,stroke:#16213e,stroke-width:3px,color:#fff
+    style TOP fill:#e94560,stroke:#c72c41,stroke-width:2px,color:#fff
+    style CENTER fill:#533483,stroke:#3d1f66,stroke-width:2px,color:#fff
+    style SIDES fill:#16697a,stroke:#0d4a5a,stroke-width:2px,color:#fff
+    style BOTTOM fill:#e94560,stroke:#c72c41,stroke-width:2px,color:#fff
+    style INTERNAL fill:#2d4059,stroke:#1a2634,stroke-width:2px,color:#fff
     
-    subgraph THERMAL["🌡️ THERMAL CONTROL"]
-        TEMP[Temperature Sensors x20<br/>Pt1000 RTD]
-        HEATERS[Heater Zones x8<br/>50W Total]
-    end
+    style PAYLOAD_CAM fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style OBC_PRIMARY fill:#4dabf7,stroke:#1971c2,stroke-width:2px,color:#fff
+    style OBC_BACKUP fill:#868e96,stroke:#495057,stroke-width:2px,color:#fff
+    style PCDU_MAIN fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style SOLAR_PANELS fill:#ffe066,stroke:#f59f00,stroke-width:2px,color:#000
+    style BATTERY fill:#51cf66,stroke:#2f9e44,stroke-width:2px,color:#fff
+    style STAR_TRACK fill:#da77f2,stroke:#9c36b5,stroke-width:2px,color:#fff
+```
+
+---
+
+## 📊 Complete Avionics Block Diagram (Vertical Layout)
+
+```mermaid
+graph TD
+    %% Power Generation Layer
+    SOLAR["☀️ SOLAR ARRAY<br/>━━━━━━━━━━━<br/>180W BOL<br/>Triple-Junction GaAs<br/>2.5% Degradation/Year"]
     
-    %% Power connections
-    SOLAR --> BATTERY
-    BATTERY --> PCDU
-    PCDU --> DC28
-    DC28 --> DC12
-    DC28 --> DC5
-    DC28 --> DC3
+    SOLAR ==>|Charge Current| BATTERY
     
-    DC28 -.Power.-> SBAND_A
-    DC28 -.Power.-> SBAND_B
-    DC12 -.Power.-> GPS1
-    DC12 -.Power.-> GPS2
-    DC12 -.Power.-> IMU
-    DC5 -.Power.-> OBC_A
-    DC5 -.Power.-> OBC_B
-    DC5 -.Power.-> STAR1
-    DC5 -.Power.-> STAR2
-    DC3 -.Power.-> TEMP
-    DC28 -.Power.-> HEATERS
-    DC28 -.Power.-> RW
-    DC28 -.Power.-> PAYLOAD_PROC
+    BATTERY["🔋 Li-Ion BATTERY<br/>━━━━━━━━━━━<br/>100 Wh Capacity<br/>28V Nominal<br/>0-40°C Operating"]
     
-    %% Data connections - SpaceWire
-    OBC_A <==SpaceWire 100Mbps==> STAR1
-    OBC_A <==SpaceWire==> STAR2
-    OBC_A <==SpaceWire==> PAYLOAD_PROC
-    OBC_A <==SpaceWire==> MEMORY
+    BATTERY ==>|28V Unregulated| PCDU
     
-    %% Data connections - CAN Bus
-    OBC_A <--CAN 500kbps--> PCDU
-    OBC_A <--CAN--> SBAND_A
-    OBC_A <--CAN--> SBAND_B
-    OBC_A <--CAN--> RW
-    OBC_A <--CAN--> MTQ
+    %% Power Distribution Layer
+    PCDU["⚡ POWER CONTROL & DISTRIBUTION UNIT<br/>━━━━━━━━━━━━━━━━━━━━━━━━━━━<br/>Current Monitoring | Fault Protection<br/>Per-Load Switching"]
     
-    %% Data connections - I2C
-    OBC_A <-.I2C 400kHz.-> IMU
-    OBC_A <-.I2C.-> MAG1
-    OBC_A <-.I2C.-> MAG2
-    OBC_A <-.I2C.-> TEMP
+    PCDU ==>|28V Rail| BUS_28V
+    PCDU ==>|12V Rail| BUS_12V
+    PCDU ==>|5V Rail| BUS_5V
+    PCDU ==>|3.3V Rail| BUS_3V3
     
-    %% Data connections - UART/SPI
-    OBC_A <-.UART.-> GPS1
-    OBC_A <-.UART.-> GPS2
-    OBC_A <-.UART.-> CLOCK
+    %% Voltage Rails
+    BUS_28V["28V BUS<br/>22-35V Range"]
+    BUS_12V["12V BUS<br/>±2% Regulated"]
+    BUS_5V["5V BUS<br/>±5% Regulated"]
+    BUS_3V3["3.3V BUS<br/>±3% Regulated"]
     
-    %% Redundancy link
-    OBC_A -.Redundancy<br/>Crosslink.-> OBC_B
+    %% Command & Data Handling Layer
+    BUS_5V -->|12W| OBC_A
+    BUS_5V -->|12W Standby| OBC_B
+    BUS_5V -->|Storage| MEMORY
     
-    %% Payload data
-    CAMERA --> PAYLOAD_PROC
+    OBC_A["💻 OBC-A PRIMARY<br/>━━━━━━━━━━━━━━<br/>RAD750 200MHz<br/>2GB RAM ECC<br/>64GB Flash EDAC<br/>FreeRTOS"]
+    OBC_B["💻 OBC-B BACKUP<br/>━━━━━━━━━━━━━━<br/>Cold Redundant<br/>Watchdog Activated<br/>Crosslink Ready"]
+    MEMORY["💾 MASS MEMORY<br/>━━━━━━━━━━━━<br/>64 GB SSD<br/>YAFFS2 Filesystem<br/>Wear Leveling"]
     
-    style POWER fill:#fff3cd
-    style CDH fill:#d1ecf1
-    style ADCS fill:#d4edda
-    style COMM fill:#f8d7da
-    style PAYLOAD fill:#e2d5f0
-    style THERMAL fill:#fde2e4
-    style OBC_A fill:#0d6efd,color:#fff
-    style OBC_B fill:#6c757d,color:#fff
+    OBC_A <-.Redundancy Link.-> OBC_B
+    OBC_A <==>|SpaceWire<br/>100 Mbps| MEMORY
+    
+    %% ADCS Sensors Layer
+    BUS_5V -->|3W each| STAR1
+    BUS_5V -->|3W each| STAR2
+    BUS_12V -->|4.8W| IMU
+    BUS_12V -->|2.4W each| GPS1
+    BUS_12V -->|2.4W each| GPS2
+    BUS_3V3 -->|0.5W each| MAG1
+    BUS_3V3 -->|0.5W each| MAG2
+    BUS_3V3 -->|0.1W each| SUN_SENSORS
+    
+    STAR1["⭐ STAR TRACKER 1<br/>━━━━━━━━━━━━━<br/>0.1° Accuracy<br/>4 Hz Update<br/>15° x 15° FOV"]
+    STAR2["⭐ STAR TRACKER 2<br/>━━━━━━━━━━━━━<br/>Hot Redundant<br/>Data Fusion in EKF"]
+    IMU["🎯 IMU<br/>━━━━━━━━━━━━━<br/>100 Hz Sampling<br/>0.05°/hr Bias<br/>3-Axis Gyro + Accel"]
+    GPS1["🌐 GPS RECEIVER 1<br/>━━━━━━━━━━━━━<br/>10m Position<br/>50ns Time Sync"]
+    GPS2["🌐 GPS RECEIVER 2<br/>━━━━━━━━━━━━━<br/>Hot Redundant<br/>Best-of-2 Selection"]
+    MAG1["🧭 MAGNETOMETER 1<br/>━━━━━━━━━━━━━<br/>5 nT Accuracy<br/>10 Hz Sampling"]
+    MAG2["🧭 MAGNETOMETER 2<br/>━━━━━━━━━━━━━<br/>Hot Redundant<br/>Averaged Output"]
+    SUN_SENSORS["☀️ SUN SENSORS x5<br/>━━━━━━━━━━━━━<br/>0.5° Accuracy<br/>4π Coverage"]
+    
+    STAR1 ==>|SpaceWire| OBC_A
+    STAR2 ==>|SpaceWire| OBC_A
+    IMU ==>|I2C 400kHz| OBC_A
+    GPS1 ==>|UART| OBC_A
+    GPS2 ==>|UART| OBC_A
+    MAG1 ==>|I2C| OBC_A
+    MAG2 ==>|I2C| OBC_A
+    SUN_SENSORS ==>|Analog| OBC_A
+    
+    %% ADCS Actuators Layer
+    BUS_28V -->|5W each| RW_ARRAY
+    BUS_28V -->|2W each| MTQ_ARRAY
+    
+    RW_ARRAY["⚙️ REACTION WHEELS x4<br/>━━━━━━━━━━━━━━━━<br/>Pyramid Configuration<br/>0.5 Nm Torque<br/>6000 RPM Max"]
+    MTQ_ARRAY["🔄 MAGNETORQUERS x3<br/>━━━━━━━━━━━━━━━━<br/>5 A·m² Dipole<br/>Wheel Desaturation"]
+    
+    OBC_A ==>|CAN Bus<br/>500 kbps| RW_ARRAY
+    OBC_A ==>|CAN Bus| MTQ_ARRAY
+    
+    %% Communication Layer
+    BUS_28V -->|70W TX| SBAND_A
+    BUS_28V -->|70W TX| SBAND_B
+    BUS_28V -->|5W| UHF_BEACON
+    
+    SBAND_A["📡 S-BAND XCVR A<br/>━━━━━━━━━━━━━<br/>2 Mbps Downlink<br/>4 kbps Uplink<br/>QPSK Modulation"]
+    SBAND_B["📡 S-BAND XCVR B<br/>━━━━━━━━━━━━━<br/>Warm Redundant<br/>Auto-Switchover"]
+    UHF_BEACON["📻 UHF BEACON<br/>━━━━━━━━━━━━━<br/>1200 bps<br/>Emergency Mode"]
+    
+    OBC_A ==>|CAN Bus<br/>CCSDS Packets| SBAND_A
+    OBC_A ==>|CAN Bus| SBAND_B
+    OBC_A ==>|UART| UHF_BEACON
+    
+    SBAND_A -.->|RF Link| GROUND["🌍 GROUND STATION"]
+    SBAND_B -.->|RF Link| GROUND
+    UHF_BEACON -.->|Emergency| GROUND
+    
+    %% Payload Layer
+    BUS_28V -->|80W| PAYLOAD_PROC
+    
+    PAYLOAD_PROC["📷 PAYLOAD PROCESSOR<br/>━━━━━━━━━━━━━━━━<br/>Image Compression<br/>JPEG2000 Encoder<br/>High-Speed Buffer"]
+    CAMERA["📸 MULTISPECTRAL CAMERA<br/>━━━━━━━━━━━━━━━━━━<br/>10m GSD<br/>5 Spectral Bands<br/>12-bit Depth"]
+    
+    CAMERA ==>|Raw Data| PAYLOAD_PROC
+    PAYLOAD_PROC ==>|SpaceWire<br/>Compressed| OBC_A
+    
+    %% Thermal Control Layer
+    BUS_28V -->|0-50W| HEATER_ZONES
+    BUS_3V3 -->|Passive| TEMP_SENSORS
+    
+    HEATER_ZONES["🔥 HEATER ZONES x8<br/>━━━━━━━━━━━━━━━<br/>Thermostatic Control<br/>±5°C Hysteresis<br/>OBC/Battery/SSPA"]
+    TEMP_SENSORS["🌡️ TEMP SENSORS x20<br/>━━━━━━━━━━━━━━━━<br/>Pt1000 RTD<br/>±0.5°C Accuracy<br/>0.1-1 Hz Sampling"]
+    
+    TEMP_SENSORS ==>|I2C| OBC_A
+    OBC_A ==>|Control Signals| HEATER_ZONES
+    
+    %% Styling
+    style SOLAR fill:#ffe066,stroke:#f59f00,stroke-width:3px,color:#000
+    style BATTERY fill:#51cf66,stroke:#2f9e44,stroke-width:3px,color:#fff
+    style PCDU fill:#ffd43b,stroke:#f59f00,stroke-width:3px,color:#000
+    style OBC_A fill:#4dabf7,stroke:#1971c2,stroke-width:3px,color:#fff
+    style OBC_B fill:#868e96,stroke:#495057,stroke-width:3px,color:#fff
+    style MEMORY fill:#9775fa,stroke:#7048e8,stroke-width:3px,color:#fff
+    style STAR1 fill:#da77f2,stroke:#9c36b5,stroke-width:2px,color:#fff
+    style STAR2 fill:#da77f2,stroke:#9c36b5,stroke-width:2px,color:#fff
+    style IMU fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style GPS1 fill:#63e6be,stroke:#20c997,stroke-width:2px,color:#fff
+    style GPS2 fill:#63e6be,stroke:#20c997,stroke-width:2px,color:#fff
+    style MAG1 fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style MAG2 fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style SUN_SENSORS fill:#ffe066,stroke:#fab005,stroke-width:2px,color:#000
+    style RW_ARRAY fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style MTQ_ARRAY fill:#69db7c,stroke:#37b24d,stroke-width:2px,color:#fff
+    style SBAND_A fill:#ff8787,stroke:#fa5252,stroke-width:2px,color:#fff
+    style SBAND_B fill:#ff8787,stroke:#fa5252,stroke-width:2px,color:#fff
+    style UHF_BEACON fill:#ffc9c9,stroke:#ff6b6b,stroke-width:2px,color:#000
+    style PAYLOAD_PROC fill:#b197fc,stroke:#9775fa,stroke-width:2px,color:#fff
+    style CAMERA fill:#da77f2,stroke:#ae3ec9,stroke-width:2px,color:#fff
+    style HEATER_ZONES fill:#ff922b,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style TEMP_SENSORS fill:#74c0fc,stroke:#4dabf7,stroke-width:2px,color:#fff
+    style GROUND fill:#51cf66,stroke:#2f9e44,stroke-width:3px,color:#fff
 ```
 
 
 
 ---
 
-## 🔄 Data Handling Architecture
+## 🔄 Data Handling Architecture (Vertical Flow)
 
 ```mermaid
-flowchart LR
-    subgraph GROUND["🌍 GROUND STATION"]
-        GS[Ground Station<br/>S-Band Antenna]
-    end
+graph TD
+    %% Ground Station
+    GROUND["🌍 GROUND STATION<br/>━━━━━━━━━━━━━━━<br/>3m S-Band Dish<br/>30 dBi Gain<br/>40 min/day Contact"]
     
-    subgraph SPACECRAFT["🛰️ SPACECRAFT"]
-        subgraph TC["Telecommand Path"]
-            RX[S-Band Receiver]
-            DECODER[CCSDS Decoder<br/>Reed-Solomon FEC]
-            TC_BUFFER[TC Buffer<br/>FIFO Queue]
-            CMD_PROC[Command Processor<br/>Validation & Auth]
-            TC_EXEC[Command Executor]
-        end
-        
-        subgraph TM["Telemetry Path"]
-            SENSORS_TM[Sensor Data<br/>ADCS, Power, Thermal]
-            TM_COLLECT[Telemetry Collector<br/>1-100 Hz Sampling]
-            TM_BUFFER[TM Buffer<br/>Priority Queue]
-            CCSDS_PKT[CCSDS Packet<br/>Formation]
-            ENCODER[Encoder<br/>Convolutional + RS]
-            TX[S-Band Transmitter<br/>2 Mbps]
-        end
-        
-        subgraph FDIR["🛡️ FDIR Logic"]
-            WATCHDOG[Watchdog Timer<br/>10s Timeout]
-            HEALTH[Health Monitor<br/>Voltage, Current, Temp]
-            FAULT_DET[Fault Detection<br/>Threshold Checks]
-            RECOVERY[Recovery Actions<br/>Reboot, Redundancy Switch]
-        end
-        
-        OBC_MAIN[OBC Main Processor]
-    end
+    GROUND ==>|Uplink<br/>4 kbps<br/>QPSK| RX_ANTENNA
+    TX_ANTENNA ==>|Downlink<br/>2 Mbps<br/>QPSK| GROUND
     
-    %% Telecommand flow
-    GS -->|Uplink| RX
-    RX --> DECODER
-    DECODER --> TC_BUFFER
-    TC_BUFFER --> CMD_PROC
-    CMD_PROC --> TC_EXEC
-    TC_EXEC --> OBC_MAIN
+    %% Spacecraft RF Interface
+    RX_ANTENNA["📡 S-BAND RX ANTENNA<br/>━━━━━━━━━━━━━━━━━<br/>6 dBi Patch Array<br/>2.2-2.3 GHz"]
+    TX_ANTENNA["📡 S-BAND TX ANTENNA<br/>━━━━━━━━━━━━━━━━━<br/>6 dBi Patch Array<br/>10W SSPA"]
     
-    %% Telemetry flow
-    SENSORS_TM --> TM_COLLECT
-    TM_COLLECT --> TM_BUFFER
-    TM_BUFFER --> CCSDS_PKT
-    CCSDS_PKT --> ENCODER
-    ENCODER --> TX
-    TX -->|Downlink| GS
+    RX_ANTENNA ==>|RF Signal| SBAND_RX
+    SBAND_TX ==>|RF Signal| TX_ANTENNA
     
-    %% FDIR connections
-    OBC_MAIN --> WATCHDOG
-    SENSORS_TM --> HEALTH
-    HEALTH --> FAULT_DET
-    FAULT_DET --> RECOVERY
-    RECOVERY --> OBC_MAIN
-    WATCHDOG --> RECOVERY
+    %% Telecommand Processing Chain
+    SBAND_RX["📻 S-BAND RECEIVER<br/>━━━━━━━━━━━━━━━<br/>Demodulation<br/>Bit Synchronization<br/>Frame Detection"]
+    
+    SBAND_RX ==>|Raw Bits| TC_DECODER
+    
+    TC_DECODER["🔓 TC DECODER<br/>━━━━━━━━━━━━━━━<br/>Reed-Solomon FEC<br/>Error Correction<br/>Frame Validation"]
+    
+    TC_DECODER ==>|Decoded Frames| TC_BUFFER
+    
+    TC_BUFFER["� TC BUFFER<br/>━━━━━━━━━━━━━━━<br/>FIFO Queue<br/>50 Commands<br/>Priority Sorting"]
+    
+    TC_BUFFER ==>|Queued Commands| CMD_PROC
+    
+    CMD_PROC["✅ COMMAND PROCESSOR<br/>━━━━━━━━━━━━━━━━━<br/>CRC Validation<br/>Authentication<br/>Sequence Check<br/>Time-Tag Handling"]
+    
+    CMD_PROC ==>|Validated Commands| CMD_EXEC
+    
+    CMD_EXEC["⚙️ COMMAND EXECUTOR<br/>━━━━━━━━━━━━━━━━━<br/>Immediate Execution<br/>Macro Expansion<br/>Subsystem Routing"]
+    
+    CMD_EXEC ==>|Control Signals| OBC_CORE
+    
+    %% OBC Core Processing
+    OBC_CORE["💻 OBC CORE PROCESSOR<br/>━━━━━━━━━━━━━━━━━━━<br/>RAD750 200 MHz<br/>FreeRTOS Kernel<br/>Task Scheduling<br/>State Machine Control"]
+    
+    OBC_CORE ==>|Sensor Requests| SENSOR_INTERFACE
+    OBC_CORE ==>|Actuator Commands| ACTUATOR_INTERFACE
+    OBC_CORE ==>|TM Data| TM_COLLECT
+    
+    %% Sensor Data Collection
+    SENSOR_INTERFACE["📊 SENSOR INTERFACE<br/>━━━━━━━━━━━━━━━━━<br/>SpaceWire / I2C / UART<br/>Multi-Protocol Handler"]
+    
+    SENSORS["🎯 SENSORS<br/>━━━━━━━━━━━━━━━<br/>Star Trackers<br/>IMU / GPS<br/>Magnetometers<br/>Sun Sensors<br/>Temp Sensors"]
+    
+    SENSORS ==>|Raw Data| SENSOR_INTERFACE
+    
+    %% Actuator Control
+    ACTUATOR_INTERFACE["⚙️ ACTUATOR INTERFACE<br/>━━━━━━━━━━━━━━━━━━<br/>CAN Bus Controller<br/>PWM Generators"]
+    
+    ACTUATORS["🔄 ACTUATORS<br/>━━━━━━━━━━━━━━━<br/>Reaction Wheels<br/>Magnetorquers<br/>Heaters<br/>Payload"]
+    
+    ACTUATOR_INTERFACE ==>|Control Signals| ACTUATORS
+    
+    %% Telemetry Generation Chain
+    TM_COLLECT["📤 TELEMETRY COLLECTOR<br/>━━━━━━━━━━━━━━━━━━━<br/>1-100 Hz Sampling<br/>Data Aggregation<br/>Timestamp Insertion"]
+    
+    TM_COLLECT ==>|Raw TM| TM_BUFFER
+    
+    TM_BUFFER["📦 TM BUFFER<br/>━━━━━━━━━━━━━━━<br/>Priority Queue<br/>100 Packets<br/>Real-Time + Stored"]
+    
+    TM_BUFFER ==>|Prioritized TM| CCSDS_PKT
+    
+    CCSDS_PKT["📋 CCSDS PACKET FORMATION<br/>━━━━━━━━━━━━━━━━━━━━━<br/>Primary Header (6B)<br/>Secondary Header<br/>Data Field<br/>CRC-16 Append"]
+    
+    CCSDS_PKT ==>|CCSDS Packets| TM_ENCODER
+    
+    TM_ENCODER["🔐 TM ENCODER<br/>━━━━━━━━━━━━━━━<br/>Convolutional Code<br/>Reed-Solomon FEC<br/>Interleaving"]
+    
+    TM_ENCODER ==>|Encoded Frames| SBAND_TX
+    
+    SBAND_TX["📻 S-BAND TRANSMITTER<br/>━━━━━━━━━━━━━━━━━━<br/>QPSK Modulation<br/>10W SSPA<br/>2 Mbps Data Rate"]
+    
+    %% FDIR Subsystem (Parallel Monitoring)
+    OBC_CORE -.Heartbeat.-> WATCHDOG
+    SENSOR_INTERFACE -.Health Data.-> HEALTH_MON
+    
+    WATCHDOG["⏱️ WATCHDOG TIMER<br/>━━━━━━━━━━━━━━━<br/>10s Timeout<br/>Hardware Reset<br/>Independent Clock"]
+    
+    HEALTH_MON["🏥 HEALTH MONITOR<br/>━━━━━━━━━━━━━━━━<br/>Voltage Monitoring<br/>Current Monitoring<br/>Temperature Checks<br/>1 Hz Sampling"]
+    
+    WATCHDOG -.Timeout.-> FAULT_DET
+    HEALTH_MON ==>|Health Status| FAULT_DET
+    
+    FAULT_DET["🚨 FAULT DETECTION<br/>━━━━━━━━━━━━━━━━<br/>Threshold Checks<br/>Trend Analysis<br/>Anomaly Detection<br/>Rule-Based Logic"]
+    
+    FAULT_DET ==>|Fault Flags| RECOVERY
+    
+    RECOVERY["🔧 RECOVERY ACTIONS<br/>━━━━━━━━━━━━━━━━━<br/>OBC Reboot<br/>Redundancy Switch<br/>Safe Mode Entry<br/>Event Logging"]
+    
+    RECOVERY ==>|Recovery Commands| OBC_CORE
+    RECOVERY -.Emergency TM.-> TM_COLLECT
     
     %% Styling
-    style GROUND fill:#e7f3ff
-    style TC fill:#d4edda
-    style TM fill:#fff3cd
-    style FDIR fill:#f8d7da
-    style OBC_MAIN fill:#0d6efd,color:#fff
+    style GROUND fill:#51cf66,stroke:#2f9e44,stroke-width:4px,color:#fff
+    style RX_ANTENNA fill:#ff8787,stroke:#fa5252,stroke-width:2px,color:#fff
+    style TX_ANTENNA fill:#ff8787,stroke:#fa5252,stroke-width:2px,color:#fff
+    style SBAND_RX fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style SBAND_TX fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style TC_DECODER fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style TC_BUFFER fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style CMD_PROC fill:#69db7c,stroke:#37b24d,stroke-width:2px,color:#fff
+    style CMD_EXEC fill:#51cf66,stroke:#2f9e44,stroke-width:2px,color:#fff
+    style OBC_CORE fill:#4dabf7,stroke:#1971c2,stroke-width:4px,color:#fff
+    style SENSOR_INTERFACE fill:#b197fc,stroke:#9775fa,stroke-width:2px,color:#fff
+    style SENSORS fill:#da77f2,stroke:#ae3ec9,stroke-width:2px,color:#fff
+    style ACTUATOR_INTERFACE fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style ACTUATORS fill:#ff922b,stroke:#f76707,stroke-width:2px,color:#fff
+    style TM_COLLECT fill:#ffe066,stroke:#fab005,stroke-width:2px,color:#000
+    style TM_BUFFER fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style CCSDS_PKT fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style TM_ENCODER fill:#63e6be,stroke:#20c997,stroke-width:2px,color:#fff
+    style WATCHDOG fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style HEALTH_MON fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style FAULT_DET fill:#ff8787,stroke:#fa5252,stroke-width:2px,color:#fff
+    style RECOVERY fill:#ff922b,stroke:#fd7e14,stroke-width:3px,color:#fff
 ```
 
 ### CCSDS Packet Structure
@@ -254,92 +422,144 @@ All telemetry and telecommand data follows **CCSDS 133.0-B-2** space packet prot
 
 ---
 
-## ⚡ Power Distribution Architecture
+## ⚡ Power Distribution Architecture (Vertical Flow)
 
 ```mermaid
-flowchart TB
-    subgraph GENERATION["Power Generation"]
-        SOLAR_ARRAY[Solar Array<br/>3x Deployable Panels<br/>180W BOL @ 28V<br/>2.5% degradation/year]
-    end
+graph TD
+    %% Solar Array Generation
+    SUN["☀️ SOLAR RADIATION<br/>━━━━━━━━━━━━━━━<br/>1367 W/m² (AM0)<br/>LEO Environment"]
     
-    subgraph STORAGE["Energy Storage"]
-        BATTERY[Li-Ion Battery<br/>100 Wh Capacity<br/>28V Nominal<br/>0-40°C Operating]
-        BMS[Battery Management<br/>Cell Balancing<br/>Charge Control<br/>SOC Estimation]
-    end
+    SUN ==>|Incident Light| SOLAR_ARRAY
     
-    subgraph DISTRIBUTION["Power Distribution"]
-        PCDU_MAIN[PCDU Main Unit]
-        
-        subgraph CONVERTERS["DC-DC Converters"]
-            CONV_28V[28V Unregulated<br/>22-35V Range]
-            CONV_12V[12V Regulated<br/>±2% Tolerance<br/>90% Efficiency]
-            CONV_5V[5V Regulated<br/>±5% Tolerance<br/>88% Efficiency]
-            CONV_3V3[3.3V Regulated<br/>±3% Tolerance<br/>85% Efficiency]
-        end
-        
-        subgraph LOADS_28V["28V Loads"]
-            LOAD_SBAND[S-Band TX<br/>70W Peak<br/>15% Duty]
-            LOAD_HEATERS[Heaters<br/>0-50W Variable<br/>30% Avg Duty]
-            LOAD_RW[Reaction Wheels<br/>20W Nominal]
-        end
-        
-        subgraph LOADS_12V["12V Loads"]
-            LOAD_GPS[GPS x2<br/>4.8W Total]
-            LOAD_IMU[IMU<br/>4.8W]
-            LOAD_SBAND_RX[S-Band RX<br/>8.4W]
-        end
-        
-        subgraph LOADS_5V["5V Loads"]
-            LOAD_OBC[OBC<br/>12W]
-            LOAD_STAR[Star Trackers x2<br/>6W Total]
-            LOAD_PAYLOAD[Payload Processor<br/>15W]
-        end
-        
-        subgraph LOADS_3V3["3.3V Loads"]
-            LOAD_SENSORS[Sensors<br/>Mag, Sun, Temp<br/>1.2W Total]
-        end
-    end
+    SOLAR_ARRAY["☀️ SOLAR ARRAY<br/>━━━━━━━━━━━━━━━━━━━━━<br/>3x Deployable Panels<br/>Triple-Junction GaAs<br/>28-32% Efficiency<br/>180W BOL @ 28V<br/>162W EOL 5yr"]
     
-    subgraph MONITORING["Power Monitoring"]
-        CURRENT_SENSE[Current Sensors<br/>±1.5% Accuracy<br/>Hall Effect]
-        VOLTAGE_SENSE[Voltage Sensors<br/>±1% Accuracy<br/>12-bit ADC]
-    end
+    SOLAR_ARRAY ==>|Charge Current<br/>Max 6.4A| BATTERY_MGMT
     
-    %% Power flow
-    SOLAR_ARRAY -->|Charge| BMS
-    BMS --> BATTERY
-    BATTERY --> PCDU_MAIN
-    PCDU_MAIN --> CONV_28V
-    PCDU_MAIN --> CONV_12V
-    PCDU_MAIN --> CONV_5V
-    PCDU_MAIN --> CONV_3V3
+    %% Battery Management
+    BATTERY_MGMT["🔋 BATTERY MANAGEMENT SYSTEM<br/>━━━━━━━━━━━━━━━━━━━━━━━━━<br/>Cell Balancing<br/>Charge Control CC/CV<br/>SOC Estimation<br/>Temperature Monitoring"]
     
-    CONV_28V --> LOAD_SBAND
-    CONV_28V --> LOAD_HEATERS
-    CONV_28V --> LOAD_RW
+    BATTERY_MGMT <==>|Charge/Discharge| BATTERY
     
-    CONV_12V --> LOAD_GPS
-    CONV_12V --> LOAD_IMU
-    CONV_12V --> LOAD_SBAND_RX
+    BATTERY["🔋 Li-Ion BATTERY PACK<br/>━━━━━━━━━━━━━━━━━━━━<br/>100 Wh Capacity<br/>28V Nominal 8S Config<br/>3.57 Ah @ 28V<br/>0-40°C Operating<br/>95% Charge Efficiency"]
     
-    CONV_5V --> LOAD_OBC
-    CONV_5V --> LOAD_STAR
-    CONV_5V --> LOAD_PAYLOAD
+    BATTERY ==>|28V Unregulated<br/>22-35V Range| PCDU_INPUT
     
-    CONV_3V3 --> LOAD_SENSORS
+    %% Power Control & Distribution Unit
+    PCDU_INPUT["⚡ PCDU INPUT STAGE<br/>━━━━━━━━━━━━━━━━━━<br/>Reverse Polarity Protection<br/>Inrush Current Limiting<br/>EMI Filtering"]
     
-    %% Monitoring
-    PCDU_MAIN -.Monitor.-> CURRENT_SENSE
-    PCDU_MAIN -.Monitor.-> VOLTAGE_SENSE
-    CURRENT_SENSE -.Data.-> LOAD_OBC
-    VOLTAGE_SENSE -.Data.-> LOAD_OBC
+    PCDU_INPUT ==>|Filtered 28V| PCDU_SWITCH
     
-    style GENERATION fill:#fff3cd
-    style STORAGE fill:#d4edda
-    style DISTRIBUTION fill:#d1ecf1
-    style MONITORING fill:#f8d7da
-    style BATTERY fill:#28a745,color:#fff
-    style PCDU_MAIN fill:#0d6efd,color:#fff
+    PCDU_SWITCH["⚡ PCDU SWITCHING MATRIX<br/>━━━━━━━━━━━━━━━━━━━━━<br/>Per-Load Switching<br/>Overcurrent Protection<br/>Fault Isolation<br/>Load Sequencing"]
+    
+    PCDU_SWITCH ==>|28V Primary| BUS_28V_DIST
+    PCDU_SWITCH ==>|To Converters| DC_DC_STAGE
+    
+    %% 28V Distribution
+    BUS_28V_DIST["28V PRIMARY BUS<br/>━━━━━━━━━━━━━━━<br/>Unregulated 22-35V<br/>High Power Loads"]
+    
+    BUS_28V_DIST ==>|70W Peak<br/>15% Duty| LOAD_SBAND_TX
+    BUS_28V_DIST ==>|0-50W Variable<br/>30% Duty| LOAD_HEATERS
+    BUS_28V_DIST ==>|20W Nominal<br/>80% Duty| LOAD_RW
+    BUS_28V_DIST ==>|5.6W Nominal<br/>20% Duty| LOAD_MTQ
+    
+    LOAD_SBAND_TX["📡 S-BAND TRANSMITTER<br/>━━━━━━━━━━━━━━━━━<br/>10W RF Output<br/>70W DC Input<br/>14% Efficiency<br/>SSPA Class AB"]
+    
+    LOAD_HEATERS["🔥 HEATER ZONES x8<br/>━━━━━━━━━━━━━━━━<br/>OBC: 10W<br/>Battery: 15W<br/>SSPA: 10W<br/>Propulsion: 15W<br/>Thermostatic Control"]
+    
+    LOAD_RW["⚙️ REACTION WHEELS x4<br/>━━━━━━━━━━━━━━━━━━<br/>5W Each Nominal<br/>15W Each Peak<br/>Pyramid Configuration<br/>BLDC Motors"]
+    
+    LOAD_MTQ["🔄 MAGNETORQUERS x3<br/>━━━━━━━━━━━━━━━━━<br/>X/Y/Z Coils<br/>2W Each Max<br/>PWM Controlled<br/>Desaturation Mode"]
+    
+    %% DC-DC Converter Stage
+    DC_DC_STAGE["🔌 DC-DC CONVERTER STAGE<br/>━━━━━━━━━━━━━━━━━━━━━<br/>Isolated Buck Converters<br/>Synchronous Rectification<br/>Soft-Start Sequencing"]
+    
+    DC_DC_STAGE ==>|12V Rail<br/>90% Eff| CONV_12V
+    DC_DC_STAGE ==>|5V Rail<br/>88% Eff| CONV_5V
+    DC_DC_STAGE ==>|3.3V Rail<br/>85% Eff| CONV_3V3
+    
+    %% 12V Distribution
+    CONV_12V["12V REGULATED BUS<br/>━━━━━━━━━━━━━━━<br/>±2% Tolerance<br/>11.76-12.24V"]
+    
+    CONV_12V ==>|4.8W Total<br/>100% Duty| LOAD_GPS
+    CONV_12V ==>|4.8W<br/>100% Duty| LOAD_IMU
+    CONV_12V ==>|8.4W<br/>85% Duty| LOAD_SBAND_RX
+    
+    LOAD_GPS["🌐 GPS RECEIVERS x2<br/>━━━━━━━━━━━━━━━━<br/>2.4W Each<br/>Hot Redundant<br/>Continuous Tracking<br/>50ns Time Sync"]
+    
+    LOAD_IMU["🎯 IMU<br/>━━━━━━━━━━━━━━━<br/>3-Axis Gyro + Accel<br/>100 Hz Sampling<br/>Temperature Stabilized<br/>MEMS Technology"]
+    
+    LOAD_SBAND_RX["📻 S-BAND RECEIVER<br/>━━━━━━━━━━━━━━━━<br/>LNA + Downconverter<br/>4 kbps Uplink<br/>High Sensitivity<br/>-110 dBm"]
+    
+    %% 5V Distribution
+    CONV_5V["5V REGULATED BUS<br/>━━━━━━━━━━━━━━━<br/>±5% Tolerance<br/>4.75-5.25V"]
+    
+    CONV_5V ==>|12W<br/>100% Duty| LOAD_OBC_A
+    CONV_5V ==>|12W Standby<br/>0% Normal| LOAD_OBC_B
+    CONV_5V ==>|6W Total<br/>100% Duty| LOAD_STAR
+    CONV_5V ==>|15W<br/>50% Duty| LOAD_PAYLOAD
+    
+    LOAD_OBC_A["💻 OBC-A PRIMARY<br/>━━━━━━━━━━━━━━━<br/>RAD750 Processor<br/>2GB RAM + 64GB Flash<br/>FreeRTOS<br/>Active Processing"]
+    
+    LOAD_OBC_B["💻 OBC-B BACKUP<br/>━━━━━━━━━━━━━━━<br/>Cold Redundant<br/>Watchdog Activated<br/>Crosslink Monitor<br/>Standby Mode"]
+    
+    LOAD_STAR["⭐ STAR TRACKERS x2<br/>━━━━━━━━━━━━━━━━━<br/>3W Each<br/>Hot Redundant<br/>4 Hz Update<br/>CCD Sensors"]
+    
+    LOAD_PAYLOAD["📷 PAYLOAD PROCESSOR<br/>━━━━━━━━━━━━━━━━━━<br/>Image Compression<br/>JPEG2000 Encoder<br/>High-Speed Buffer<br/>SpaceWire Interface"]
+    
+    %% 3.3V Distribution
+    CONV_3V3["3.3V REGULATED BUS<br/>━━━━━━━━━━━━━━━<br/>±3% Tolerance<br/>3.20-3.40V"]
+    
+    CONV_3V3 ==>|1.2W Total<br/>100% Duty| LOAD_SENSORS
+    
+    LOAD_SENSORS["🌡️ SENSORS<br/>━━━━━━━━━━━━━━━<br/>Magnetometers x2: 0.5W<br/>Sun Sensors x5: 0.5W<br/>Temp Sensors x20: 0.2W<br/>Low Power CMOS"]
+    
+    %% Power Monitoring
+    PCDU_SWITCH -.Monitor.-> CURRENT_SENSE
+    PCDU_SWITCH -.Monitor.-> VOLTAGE_SENSE
+    
+    CURRENT_SENSE["📊 CURRENT SENSORS<br/>━━━━━━━━━━━━━━━━<br/>Hall Effect ACS712<br/>±1.5% Accuracy<br/>Per-Load Monitoring<br/>10 Hz Sampling"]
+    
+    VOLTAGE_SENSE["📊 VOLTAGE SENSORS<br/>━━━━━━━━━━━━━━━━<br/>12-bit ADC<br/>±1% Accuracy<br/>All Rails Monitored<br/>10 Hz Sampling"]
+    
+    CURRENT_SENSE ==>|Telemetry| POWER_MONITOR
+    VOLTAGE_SENSE ==>|Telemetry| POWER_MONITOR
+    BATTERY_MGMT ==>|SOC Data| POWER_MONITOR
+    
+    POWER_MONITOR["📈 POWER MONITORING TASK<br/>━━━━━━━━━━━━━━━━━━━━━<br/>Real-Time Telemetry<br/>Trend Analysis<br/>Fault Detection<br/>Load Shedding Logic"]
+    
+    POWER_MONITOR -.Control.-> PCDU_SWITCH
+    POWER_MONITOR ==>|Health Data| OBC_FDIR
+    
+    OBC_FDIR["🛡️ OBC FDIR<br/>━━━━━━━━━━━━━━━<br/>Safe Mode Entry<br/>Load Prioritization<br/>Battery Protection"]
+    
+    %% Styling
+    style SUN fill:#ffe066,stroke:#f59f00,stroke-width:3px,color:#000
+    style SOLAR_ARRAY fill:#ffd43b,stroke:#f08c00,stroke-width:3px,color:#000
+    style BATTERY_MGMT fill:#a9e34b,stroke:#82c91e,stroke-width:3px,color:#000
+    style BATTERY fill:#51cf66,stroke:#2f9e44,stroke-width:4px,color:#fff
+    style PCDU_INPUT fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style PCDU_SWITCH fill:#4dabf7,stroke:#1971c2,stroke-width:3px,color:#fff
+    style BUS_28V_DIST fill:#ff8787,stroke:#fa5252,stroke-width:3px,color:#fff
+    style DC_DC_STAGE fill:#b197fc,stroke:#9775fa,stroke-width:3px,color:#fff
+    style CONV_12V fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style CONV_5V fill:#69db7c,stroke:#37b24d,stroke-width:2px,color:#fff
+    style CONV_3V3 fill:#63e6be,stroke:#20c997,stroke-width:2px,color:#fff
+    style LOAD_SBAND_TX fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style LOAD_HEATERS fill:#ff922b,stroke:#f76707,stroke-width:2px,color:#fff
+    style LOAD_RW fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style LOAD_MTQ fill:#69db7c,stroke:#37b24d,stroke-width:2px,color:#fff
+    style LOAD_GPS fill:#63e6be,stroke:#20c997,stroke-width:2px,color:#fff
+    style LOAD_IMU fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style LOAD_SBAND_RX fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style LOAD_OBC_A fill:#4dabf7,stroke:#1971c2,stroke-width:3px,color:#fff
+    style LOAD_OBC_B fill:#868e96,stroke:#495057,stroke-width:2px,color:#fff
+    style LOAD_STAR fill:#da77f2,stroke:#9c36b5,stroke-width:2px,color:#fff
+    style LOAD_PAYLOAD fill:#b197fc,stroke:#9775fa,stroke-width:2px,color:#fff
+    style LOAD_SENSORS fill:#ffe066,stroke:#fab005,stroke-width:2px,color:#000
+    style CURRENT_SENSE fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style VOLTAGE_SENSE fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style POWER_MONITOR fill:#a9e34b,stroke:#82c91e,stroke-width:3px,color:#000
+    style OBC_FDIR fill:#ff8787,stroke:#fa5252,stroke-width:3px,color:#fff
 ```
 
 ### Power Budget
@@ -379,98 +599,150 @@ Where:
 
 ---
 
-## 💻 Software / RTOS Architecture
+## 💻 Software / RTOS Architecture (Vertical Flow)
 
 ```mermaid
-flowchart TB
-    subgraph BOOT["System Boot Sequence"]
-        POWER_ON[Power On Reset]
-        BOOTLOADER[Bootloader<br/>Hardware Init<br/>Memory Test]
-        RTOS_INIT[RTOS Initialization<br/>FreeRTOS Kernel]
-        APP_INIT[Application Init<br/>Create Tasks]
-    end
+graph TD
+    %% Boot Sequence
+    POWER_ON["⚡ POWER ON RESET<br/>━━━━━━━━━━━━━━━<br/>Hardware Reset<br/>Voltage Stabilization<br/>Clock Initialization"]
     
-    subgraph TASKS["Real-Time Tasks"]
-        TASK_SENSOR[Sensor Task<br/>Priority: 9 High<br/>Period: 10ms 100Hz<br/>Stack: 4KB]
-        TASK_ADCS[ADCS Control Task<br/>Priority: 8 High<br/>Period: 20ms 50Hz<br/>Stack: 8KB]
-        TASK_TM[Telemetry Task<br/>Priority: 6 Medium<br/>Period: 1s 1Hz<br/>Stack: 4KB]
-        TASK_HEALTH[Health Monitor Task<br/>Priority: 7 Medium<br/>Period: 1s<br/>Stack: 6KB]
-        TASK_THERMAL[Thermal Control Task<br/>Priority: 5 Medium<br/>Period: 10s<br/>Stack: 4KB]
-        TASK_POWER[Power Monitor Task<br/>Priority: 5 Medium<br/>Period: 10s<br/>Stack: 4KB]
-        TASK_IDLE[Idle Task<br/>Priority: 0 Lowest<br/>Watchdog Kick<br/>Stack: 2KB]
-    end
+    POWER_ON ==>|Boot| BOOTLOADER
     
-    subgraph ISR["Interrupt Service Routines"]
-        ISR_WATCHDOG[Watchdog ISR<br/>10s Timeout]
-        ISR_SPWIRE[SpaceWire ISR<br/>Packet RX/TX]
-        ISR_CAN[CAN Bus ISR<br/>Message RX]
-        ISR_TIMER[System Timer ISR<br/>1ms Tick]
-    end
+    BOOTLOADER["🔧 BOOTLOADER<br/>━━━━━━━━━━━━━━━━━━<br/>ROM-Based Code<br/>Hardware Init<br/>RAM Test EDAC<br/>Flash Validation<br/>Watchdog Setup"]
     
-    subgraph IPC["Inter-Process Communication"]
-        QUEUE_TM[TM Queue<br/>100 Messages]
-        QUEUE_CMD[CMD Queue<br/>50 Messages]
-        MUTEX_MEM[Memory Mutex]
-        SEMAPHORE[Sync Semaphores]
-    end
+    BOOTLOADER ==>|Load Kernel| RTOS_INIT
     
-    subgraph STATE["State Machine"]
-        STATE_INIT[INIT Mode<br/>Boot & Self-Test]
-        STATE_SAFE[SAFE Mode<br/>Sun Pointing<br/>Minimal Power]
-        STATE_STANDBY[STANDBY Mode<br/>Ready for Ops]
-        STATE_NOMINAL[NOMINAL Mode<br/>Science Operations]
-        STATE_DEORBIT[DEORBIT Mode<br/>End of Life]
-    end
+    RTOS_INIT["🔷 FreeRTOS KERNEL INIT<br/>━━━━━━━━━━━━━━━━━━━━<br/>Scheduler Setup<br/>Memory Pool Allocation<br/>IPC Creation<br/>Timer Initialization"]
     
-    %% Boot sequence
-    POWER_ON --> BOOTLOADER
-    BOOTLOADER --> RTOS_INIT
-    RTOS_INIT --> APP_INIT
-    APP_INIT --> TASK_SENSOR
-    APP_INIT --> TASK_ADCS
-    APP_INIT --> TASK_TM
-    APP_INIT --> TASK_HEALTH
-    APP_INIT --> TASK_THERMAL
-    APP_INIT --> TASK_POWER
-    APP_INIT --> TASK_IDLE
+    RTOS_INIT ==>|Create Tasks| APP_INIT
     
-    %% Task interactions
-    TASK_SENSOR -->|Sensor Data| QUEUE_TM
-    TASK_SENSOR -->|ADCS Data| TASK_ADCS
-    TASK_ADCS -->|Control Cmds| QUEUE_CMD
-    TASK_HEALTH -->|Faults| QUEUE_TM
-    TASK_TM -->|Packets| ISR_SPWIRE
+    APP_INIT["🚀 APPLICATION INIT<br/>━━━━━━━━━━━━━━━━━━<br/>Task Creation<br/>Queue Setup<br/>Semaphore Init<br/>Mutex Creation<br/>Event Groups"]
     
-    %% ISR connections
+    APP_INIT ==>|Start Scheduler| TASK_LAYER
+    
+    %% Real-Time Task Layer
+    TASK_LAYER["⚙️ REAL-TIME TASK LAYER<br/>━━━━━━━━━━━━━━━━━━━━━"]
+    
+    TASK_LAYER ==>|Priority 9| TASK_SENSOR
+    TASK_LAYER ==>|Priority 8| TASK_ADCS
+    TASK_LAYER ==>|Priority 7| TASK_HEALTH
+    TASK_LAYER ==>|Priority 6| TASK_TM
+    TASK_LAYER ==>|Priority 5| TASK_THERMAL
+    TASK_LAYER ==>|Priority 5| TASK_POWER
+    TASK_LAYER ==>|Priority 0| TASK_IDLE
+    
+    %% High Priority Tasks
+    TASK_SENSOR["📊 SENSOR ACQUISITION TASK<br/>━━━━━━━━━━━━━━━━━━━━━━<br/>Priority: 9 Highest<br/>Period: 10ms 100Hz<br/>Stack: 4KB<br/>WCET: 2ms<br/>━━━━━━━━━━━━━━━━━━━━━━<br/>• Read IMU 100Hz<br/>• Read Star Tracker 4Hz<br/>• Read Magnetometer 10Hz<br/>• Read Sun Sensors 1Hz<br/>• Timestamp Data<br/>• Publish to Queue"]
+    
+    TASK_ADCS["🎯 ADCS CONTROL TASK<br/>━━━━━━━━━━━━━━━━━━<br/>Priority: 8 High<br/>Period: 20ms 50Hz<br/>Stack: 8KB<br/>WCET: 5ms<br/>━━━━━━━━━━━━━━━━━━<br/>• EKF Prediction<br/>• EKF Update<br/>• Attitude Control Law<br/>• Wheel Command Gen<br/>• Desaturation Logic<br/>• Actuator Output"]
+    
+    TASK_HEALTH["🏥 HEALTH MONITOR TASK<br/>━━━━━━━━━━━━━━━━━━━━<br/>Priority: 7 High<br/>Period: 1s<br/>Stack: 6KB<br/>WCET: 50ms<br/>━━━━━━━━━━━━━━━━━━━━<br/>• Voltage Checks<br/>• Current Monitoring<br/>• Temperature Checks<br/>• Fault Detection<br/>• Threshold Validation<br/>• FDIR Trigger"]
+    
+    TASK_TM["📡 TELEMETRY TASK<br/>━━━━━━━━━━━━━━━━━━<br/>Priority: 6 Medium<br/>Period: 1s<br/>Stack: 4KB<br/>WCET: 100ms<br/>━━━━━━━━━━━━━━━━━━<br/>• Collect Housekeeping<br/>• CCSDS Packet Form<br/>• Priority Queuing<br/>• Downlink Scheduling<br/>• Event Logging"]
+    
+    TASK_THERMAL["🌡️ THERMAL CONTROL TASK<br/>━━━━━━━━━━━━━━━━━━━━━<br/>Priority: 5 Medium<br/>Period: 10s<br/>Stack: 4KB<br/>WCET: 20ms<br/>━━━━━━━━━━━━━━━━━━━━━<br/>• Read Temp Sensors<br/>• Heater Control Logic<br/>• Thermostatic On/Off<br/>• Hysteresis ±5°C<br/>• Zone Management"]
+    
+    TASK_POWER["⚡ POWER MONITOR TASK<br/>━━━━━━━━━━━━━━━━━━━━<br/>Priority: 5 Medium<br/>Period: 10s<br/>Stack: 4KB<br/>WCET: 20ms<br/>━━━━━━━━━━━━━━━━━━━━<br/>• Battery SOC<br/>• Solar Current<br/>• Load Currents<br/>• Bus Voltages<br/>• Load Shedding"]
+    
+    TASK_IDLE["💤 IDLE TASK<br/>━━━━━━━━━━━━━━━━━━<br/>Priority: 0 Lowest<br/>Period: Always Running<br/>Stack: 2KB<br/>━━━━━━━━━━━━━━━━━━<br/>• Kick Watchdog<br/>• CPU Usage Calc<br/>• Low Power Mode<br/>• Background Tasks"]
+    
+    %% Inter-Process Communication
+    TASK_SENSOR ==>|Sensor Data| QUEUE_SENSOR
+    QUEUE_SENSOR ==>|Subscribe| TASK_ADCS
+    QUEUE_SENSOR ==>|Subscribe| TASK_TM
+    
+    TASK_ADCS ==>|Control Cmds| QUEUE_ACTUATOR
+    TASK_HEALTH ==>|Fault Events| QUEUE_EVENTS
+    TASK_TM ==>|TM Packets| QUEUE_DOWNLINK
+    
+    QUEUE_SENSOR["📬 SENSOR DATA QUEUE<br/>━━━━━━━━━━━━━━━━━<br/>100 Messages<br/>Overwrite Oldest<br/>Mutex Protected"]
+    
+    QUEUE_ACTUATOR["📬 ACTUATOR CMD QUEUE<br/>━━━━━━━━━━━━━━━━━━<br/>50 Messages<br/>Priority Queue<br/>Semaphore Sync"]
+    
+    QUEUE_EVENTS["📬 EVENT QUEUE<br/>━━━━━━━━━━━━━━━━━<br/>200 Events<br/>Timestamped<br/>Persistent Log"]
+    
+    QUEUE_DOWNLINK["📬 DOWNLINK QUEUE<br/>━━━━━━━━━━━━━━━━━<br/>100 Packets<br/>Priority Sorted<br/>Real-Time First"]
+    
+    %% Interrupt Service Routines
+    TASK_LAYER -.Preempt.-> ISR_LAYER
+    
+    ISR_LAYER["⚡ INTERRUPT SERVICE ROUTINE LAYER<br/>━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]
+    
+    ISR_LAYER ==>|Hardware IRQ| ISR_WATCHDOG
+    ISR_LAYER ==>|Hardware IRQ| ISR_TIMER
+    ISR_LAYER ==>|Hardware IRQ| ISR_SPWIRE
+    ISR_LAYER ==>|Hardware IRQ| ISR_CAN
+    
+    ISR_WATCHDOG["⏱️ WATCHDOG ISR<br/>━━━━━━━━━━━━━━━<br/>10s Timeout<br/>NMI Priority<br/>System Reset<br/>Log Fault"]
+    
+    ISR_TIMER["⏰ SYSTEM TIMER ISR<br/>━━━━━━━━━━━━━━━━━<br/>1ms Tick<br/>High Priority<br/>RTOS Scheduler<br/>Task Wakeup"]
+    
+    ISR_SPWIRE["📡 SpaceWire ISR<br/>━━━━━━━━━━━━━━━<br/>Packet RX/TX<br/>DMA Complete<br/>Error Handling<br/>Signal Task"]
+    
+    ISR_CAN["🚌 CAN Bus ISR<br/>━━━━━━━━━━━━━━━<br/>Message RX<br/>TX Complete<br/>Bus Error<br/>Signal Task"]
+    
     ISR_TIMER -.Tick.-> TASK_SENSOR
     ISR_TIMER -.Tick.-> TASK_ADCS
-    ISR_SPWIRE -.Data.-> TASK_TM
-    ISR_CAN -.Data.-> TASK_POWER
+    ISR_SPWIRE -.Signal.-> TASK_TM
+    ISR_CAN -.Signal.-> TASK_POWER
     ISR_WATCHDOG -.Reset.-> BOOTLOADER
     
-    %% IPC usage
-    TASK_TM -.Use.-> QUEUE_TM
-    TASK_ADCS -.Use.-> QUEUE_CMD
-    TASK_TM -.Lock.-> MUTEX_MEM
-    TASK_SENSOR -.Signal.-> SEMAPHORE
+    %% State Machine
+    TASK_HEALTH ==>|Mode Control| STATE_MACHINE
     
-    %% State transitions
+    STATE_MACHINE["🔄 SPACECRAFT STATE MACHINE<br/>━━━━━━━━━━━━━━━━━━━━━━━"]
+    
+    STATE_MACHINE ==>|Current State| STATE_INIT
+    STATE_MACHINE ==>|Transition| STATE_SAFE
+    STATE_MACHINE ==>|Transition| STATE_STANDBY
+    STATE_MACHINE ==>|Transition| STATE_NOMINAL
+    STATE_MACHINE ==>|Transition| STATE_DEORBIT
+    
+    STATE_INIT["🔵 INIT MODE<br/>━━━━━━━━━━━━━━━<br/>Boot & Self-Test<br/>Sensor Calibration<br/>Memory Check<br/>Subsystem Init<br/>Duration: 5 min"]
+    
+    STATE_SAFE["🟡 SAFE MODE<br/>━━━━━━━━━━━━━━━<br/>Sun Pointing<br/>Minimal Power<br/>UHF Beacon ON<br/>Payload OFF<br/>Await Recovery"]
+    
+    STATE_STANDBY["🟢 STANDBY MODE<br/>━━━━━━━━━━━━━━━━<br/>Ready for Ops<br/>Attitude Acquired<br/>All Systems Nominal<br/>Await Ground CMD"]
+    
+    STATE_NOMINAL["🟢 NOMINAL MODE<br/>━━━━━━━━━━━━━━━━━<br/>Science Operations<br/>Payload Active<br/>Full Functionality<br/>Normal Operations"]
+    
+    STATE_DEORBIT["🔴 DEORBIT MODE<br/>━━━━━━━━━━━━━━━━━<br/>End of Life<br/>Data Purge<br/>Passivation<br/>Deorbit Burn"]
+    
     STATE_INIT -->|Self-Test Pass| STATE_SAFE
     STATE_SAFE -->|Ground CMD| STATE_STANDBY
-    STATE_STANDBY -->|Attitude Acquired| STATE_NOMINAL
-    STATE_NOMINAL -->|Fault Detected| STATE_SAFE
+    STATE_STANDBY -->|Attitude OK| STATE_NOMINAL
+    STATE_NOMINAL -->|Fault| STATE_SAFE
     STATE_NOMINAL -->|EOL CMD| STATE_DEORBIT
     STATE_SAFE -->|Recovery| STATE_STANDBY
     
-    style BOOT fill:#d1ecf1
-    style TASKS fill:#d4edda
-    style ISR fill:#fff3cd
-    style IPC fill:#f8d7da
-    style STATE fill:#e2d5f0
-    style TASK_SENSOR fill:#28a745,color:#fff
-    style TASK_ADCS fill:#0d6efd,color:#fff
-    style STATE_NOMINAL fill:#28a745,color:#fff
-    style STATE_SAFE fill:#ffc107,color:#000
+    %% Styling
+    style POWER_ON fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
+    style BOOTLOADER fill:#ffa94d,stroke:#fd7e14,stroke-width:3px,color:#fff
+    style RTOS_INIT fill:#4dabf7,stroke:#1971c2,stroke-width:3px,color:#fff
+    style APP_INIT fill:#69db7c,stroke:#37b24d,stroke-width:3px,color:#fff
+    style TASK_LAYER fill:#b197fc,stroke:#9775fa,stroke-width:3px,color:#fff
+    style TASK_SENSOR fill:#51cf66,stroke:#2f9e44,stroke-width:3px,color:#fff
+    style TASK_ADCS fill:#4dabf7,stroke:#1971c2,stroke-width:3px,color:#fff
+    style TASK_HEALTH fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style TASK_TM fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style TASK_THERMAL fill:#ff922b,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style TASK_POWER fill:#ffe066,stroke:#fab005,stroke-width:2px,color:#000
+    style TASK_IDLE fill:#868e96,stroke:#495057,stroke-width:2px,color:#fff
+    style QUEUE_SENSOR fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style QUEUE_ACTUATOR fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style QUEUE_EVENTS fill:#ffd43b,stroke:#f59f00,stroke-width:2px,color:#000
+    style QUEUE_DOWNLINK fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style ISR_LAYER fill:#ff8787,stroke:#fa5252,stroke-width:3px,color:#fff
+    style ISR_WATCHDOG fill:#ff6b6b,stroke:#c92a2a,stroke-width:2px,color:#fff
+    style ISR_TIMER fill:#ffa94d,stroke:#fd7e14,stroke-width:2px,color:#fff
+    style ISR_SPWIRE fill:#b197fc,stroke:#9775fa,stroke-width:2px,color:#fff
+    style ISR_CAN fill:#69db7c,stroke:#37b24d,stroke-width:2px,color:#fff
+    style STATE_MACHINE fill:#da77f2,stroke:#ae3ec9,stroke-width:3px,color:#fff
+    style STATE_INIT fill:#74c0fc,stroke:#339af0,stroke-width:2px,color:#fff
+    style STATE_SAFE fill:#ffd43b,stroke:#f59f00,stroke-width:3px,color:#000
+    style STATE_STANDBY fill:#a9e34b,stroke:#82c91e,stroke-width:2px,color:#000
+    style STATE_NOMINAL fill:#51cf66,stroke:#2f9e44,stroke-width:3px,color:#fff
+    style STATE_DEORBIT fill:#ff6b6b,stroke:#c92a2a,stroke-width:3px,color:#fff
 ```
 
 ### Task Scheduling
