@@ -36,6 +36,106 @@ This repository documents a complete spacecraft avionics architecture for a **25
 
 ---
 
+## 🛰️ Spacecraft Visual Architecture
+
+```
+                                    ╔═══════════════════════════════════════╗
+                                    ║    ⭐ STAR TRACKER 2 (REDUNDANT)     ║
+                                    ╚═══════════════════════════════════════╝
+                                                    │
+                    ╔═══════════════════════════════╧═══════════════════════════════╗
+                    ║                         -Z FACE (ZENITH)                      ║
+                    ║  ⭐ STAR TRACKER 1    ☀️ SUN SENSORS x5    🧭 MAGNETOMETERS  ║
+                    ╚═══════════════════════════════╤═══════════════════════════════╝
+                                                    │
+        ╔═══════════════════════════════════════════╧═══════════════════════════════════════════╗
+        ║                                                                                         ║
+        ║                            SPACECRAFT BUS (250 KG)                                      ║
+        ║                         500-700 KM SUN-SYNCHRONOUS ORBIT                                ║
+        ║                                                                                         ║
+        ║    ┌─────────────────────────────────────────────────────────────────────────┐        ║
+        ║    │                                                                           │        ║
+☀️═══════╬════╡  SOLAR PANEL +Y                  CENTRAL AVIONICS BAY                  ╞════╬═══════☀️
+180W BOL ║    │  Triple-Junction                                                       │    ║ 180W BOL
+DEPLOYED ║    │  GaAs Cells                   ┌─────────────────────┐                  │    ║ DEPLOYED
+        ║    │  3x Deployable                 │  💻 OBC-A PRIMARY   │                  │    ║
+        ║    │                                │  RAD750 / LEON3FT   │                  │    ║
+        ║    │                                │  2GB RAM + 64GB     │                  │    ║
+        ║    │                                └─────────────────────┘                  │    ║
+        ║    │                                                                           │    ║
+        ║    │                                ┌─────────────────────┐                  │    ║
+        ║    │  📡 S-BAND                     │  💻 OBC-B BACKUP    │                  │    ║
+        ║    │  ANTENNA                       │  Cold Redundant     │                  │    ║
+        ║    │  Patch Array                   └─────────────────────┘                  │    ║
+        ║    │  6 dBi                                                                   │    ║
+        ║    │                                ┌─────────────────────┐                  │    ║
+        ║    │                                │  ⚡ PCDU             │                  │    ║
+        ║    │  ❄️ RADIATOR                  │  Power Distribution │                  │    ║
+        ║    │  0.6 m²                        │  28V → 12V/5V/3.3V  │                  │    ║
+        ║    │  ε = 0.85                      └─────────────────────┘                  │    ║
+        ║    │                                                                           │    ║
+        ║    │                                ┌─────────────────────┐                  │    ║
+        ║    │                                │  🔋 Li-Ion BATTERY  │                  │    ║
+        ║    │                                │  100 Wh @ 28V       │                  │    ║
+        ║    │                                │  Thermal Control    │                  │    ║
+        ║    │                                └─────────────────────┘                  │    ║
+        ║    │                                                                           │    ║
+        ║    │  INTERNAL COMPONENTS:                                                    │    ║
+        ║    │  • 🎯 IMU (100 Hz)              • 🌐 GPS x2 (Hot Redundant)            │    ║
+        ║    │  • ⚙️ Reaction Wheels x4        • 🔄 Magnetorquers x3                  │    ║
+        ║    │  • 📡 S-Band Transceiver x2     • 🌡️ Temp Sensors x20                 │    ║
+        ║    │  • 🔥 Heater Zones x8           • 💾 Mass Memory 64GB                  │    ║
+        ║    │                                                                           │    ║
+        ║    └─────────────────────────────────────────────────────────────────────────┘    ║
+        ║                                                                                     ║
+        ╚═════════════════════════════════════╤═══════════════════════════════════════════════╝
+                                              │
+                    ╔═════════════════════════╧═════════════════════════╗
+                    ║              +Z FACE (NADIR POINTING)             ║
+                    ║                                                   ║
+                    ║         📷 MULTISPECTRAL CAMERA                   ║
+                    ║         10m GSD | 5 Spectral Bands               ║
+                    ║         12-bit Depth | JPEG2000                  ║
+                    ║                                                   ║
+                    ║         📸 PAYLOAD PROCESSOR                      ║
+                    ║         Image Compression | 80W                  ║
+                    ╚═══════════════════════════════════════════════════╝
+                                              │
+                                              ▼
+                                        🌍 EARTH
+                                    (500-700 km below)
+
+
+        ╔═══════════════════════════════════════════════════════════════════════════╗
+        ║                         SPACECRAFT SPECIFICATIONS                         ║
+        ╠═══════════════════════════════════════════════════════════════════════════╣
+        ║  Mass:              250 kg                                                ║
+        ║  Dimensions:        1.2m × 1.2m × 1.5m (stowed)                          ║
+        ║  Solar Span:        4.5m (deployed)                                      ║
+        ║  Power:             180W BOL → 162W EOL                                  ║
+        ║  Attitude:          3-axis stabilized, ≤0.1° accuracy                   ║
+        ║  Orbit:             500-700 km SSO, 97.4° inclination                   ║
+        ║  Mission Life:      5 years                                              ║
+        ║  Data Rate:         2 Mbps S-band downlink                               ║
+        ║  Redundancy:        Dual OBC, Dual Transceivers, Dual Star Trackers     ║
+        ╚═══════════════════════════════════════════════════════════════════════════╝
+
+
+        ╔═══════════════════════════════════════════════════════════════════════════╗
+        ║                      SUBSYSTEM LOCATION REFERENCE                         ║
+        ╠═══════════════════════════════════════════════════════════════════════════╣
+        ║  +Z FACE (NADIR):    Payload Camera, Payload Processor                   ║
+        ║  -Z FACE (ZENITH):   Star Trackers x2, Sun Sensors x5                    ║
+        ║  +X/-X FACES:        Solar Panels (Deployable)                           ║
+        ║  +Y/-Y FACES:        S-Band Antennas, Radiators                          ║
+        ║  CENTRAL BAY:        OBC-A, OBC-B, PCDU, Battery, Memory                 ║
+        ║  DISTRIBUTED:        IMU, GPS, Magnetometers, Reaction Wheels            ║
+        ║                      Magnetorquers, Heaters, Temperature Sensors         ║
+        ╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+---
+
 ## 🏗️ System Architecture
 
 ### Architecture Philosophy
